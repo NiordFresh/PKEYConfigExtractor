@@ -1,0 +1,32 @@
+﻿<Window x:Class="PKEYConfigExtractor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PKEYConfigExtractor"
+        mc:Ignorable="d"
+        Title="PKEYConfigExtractor v1.0" Height="550" Width="650">
+    <Grid>
+        <ComboBox x:Name="EditionComboBox" HorizontalAlignment="Center" Margin="0,35,0,0" VerticalAlignment="Top" Width="630"/>
+        <TextBox x:Name="FilePathTextBox" HorizontalAlignment="Center" Margin="0,10,0,0" TextWrapping="Wrap" Text="Insert your PKEYConfig file..." VerticalAlignment="Top" Width="630" Height="20" Cursor="Hand" IsReadOnly="True"/>
+        <TextBox x:Name="SerialTextBox" HorizontalAlignment="Left" Margin="10,62,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="70"/>
+        <TextBox x:Name="SecurityTextBox" HorizontalAlignment="Left" Margin="82,62,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="70"/>
+        <Button x:Name="GenerateButton" Content="GENERATE!" HorizontalAlignment="Center" Margin="0,121,0,0" VerticalAlignment="Top" Height="40" Width="262"/>
+        <ListBox x:Name="KeysListBox" Margin="10,166,10,10">
+            <ListBox.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Copy Selected" Click="CopySelected_Click"/>
+                    <MenuItem Header="Copy All" Click="CopyAll_Click"/>
+                </ContextMenu>
+            </ListBox.ContextMenu>
+        </ListBox>
+        <CheckBox x:Name="RandomCheckBox" Content="Use random valid [SERIAL] and [SECURITY]..." HorizontalAlignment="Left" Margin="376,68,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="CountTextBox" HorizontalAlignment="Left" Margin="568,91,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="59"/>
+        <TextBlock HorizontalAlignment="Left" Margin="376,91,0,0" TextWrapping="Wrap" Text="How many to generate? (max. 100):" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,85,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="9" Foreground="Gray" Width="202">
+            <Run Text="SERIAL: 0x0 - 0x3FFFFFFF"/>
+            <LineBreak/>
+            <Run Text="SECURITY: 0x0 - 0x1FFFFFFFFFFFFF"/>
+        </TextBlock>
+    </Grid>
+</Window>
