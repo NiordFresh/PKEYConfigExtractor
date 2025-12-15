@@ -1,15 +1,19 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using PKEYConfigExtractor;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Xml.Linq;
-using Microsoft.Win32;
 
 namespace PKEYConfigExtractor
 {
@@ -23,6 +27,8 @@ namespace PKEYConfigExtractor
             InitializeComponent();
             FilePathTextBox.PreviewMouseLeftButtonDown += FilePathTextBox_Click;
             GenerateButton.Click += GenerateButton_Click;
+            ManualRadioButton.Checked += ManualRadioButton_Checked;
+            ComboRadioButton.Checked += ComboRadioButton_Checked;
 
             MenuItem copySelected = new MenuItem() { Header = "Copy Selected" };
             copySelected.Click += CopySelected_Click;
@@ -35,6 +41,10 @@ namespace PKEYConfigExtractor
             contextMenu.Items.Add(copyAll);
 
             KeysListBox.ContextMenu = contextMenu;
+
+            MainComboBox.IsEnabled = true;
+            GroupIdTextBox.IsEnabled = false;
+            ComboRadioButton.IsChecked = true;
         }
 
         private string ExtractEmbeddedResource(string resourceName)
@@ -56,10 +66,17 @@ namespace PKEYConfigExtractor
                     {
                         throw new InvalidOperationException($"Could not load resource stream for '{resourceName}'.");
                     }
+                    string appDataPath = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        "PKEYConfigExtractor"
+                    );
 
-                    string tempPath = Path.GetTempFileName();
-                    string finalPath = Path.ChangeExtension(tempPath, ".pyc");
-                    File.Move(tempPath, finalPath);
+                    if (!Directory.Exists(appDataPath))
+                    {
+                        Directory.CreateDirectory(appDataPath);
+                    }
+
+                    string finalPath = Path.Combine(appDataPath, resourceName);
 
                     using (FileStream fileStream = new FileStream(finalPath, FileMode.Create, FileAccess.Write))
                     {
@@ -83,6 +100,7 @@ namespace PKEYConfigExtractor
             {
                 try
                 {
+                    System.Threading.Thread.Sleep(100);
                     File.Delete(path);
                 }
                 catch
@@ -115,7 +133,7 @@ namespace PKEYConfigExtractor
 
                 pkeyConfig = new PKeyConfig(xdoc.Root);
 
-                EditionComboBox.Items.Clear();
+                var items = new ObservableCollection<EditionItem>();
 
                 var configs = pkeyConfig.Configs
                     .Where(c => {
@@ -126,18 +144,14 @@ namespace PKEYConfigExtractor
 
                 foreach (var config in configs)
                 {
-                    ComboBoxItem item = new ComboBoxItem
-                    {
-                        Content = $"[{config.GroupId}]: \"{config.Desc}\" - {config.EditionId}",
-                        Tag = config
-                    };
-                    EditionComboBox.Items.Add(item);
+                    var item = new EditionItem(
+                        $"[{config.GroupId}]: \"{config.Desc}\" - {config.EditionId}",
+                        config
+                    );
+                    items.Add(item);
                 }
 
-                if (EditionComboBox.Items.Count > 0)
-                {
-                    EditionComboBox.SelectedIndex = 0;
-                }
+                EditionListBox.ItemsSource = items;
 
                 MessageBox.Show($"Loaded {configs.Count} editions successfully!", "Success",
                     MessageBoxButton.OK, MessageBoxImage.Information);
@@ -147,6 +161,27 @@ namespace PKEYConfigExtractor
                 MessageBox.Show($"Error loading file: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void EditionListBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.OriginalSource is CheckBox)
+            {
+                e.Handled = false;
+            }
+        }
+
+        private void ManualRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            MainComboBox.IsEnabled = false;
+            GroupIdTextBox.IsEnabled = true;
+            GroupIdTextBox.Focus();
+        }
+
+        private void ComboRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            MainComboBox.IsEnabled = true;
+            GroupIdTextBox.IsEnabled = false;
         }
 
         private string GenerateKeyWithPython(int groupId, int serial, long security)
@@ -162,28 +197,39 @@ namespace PKEYConfigExtractor
             {
                 ProcessStartInfo startInfo = new ProcessStartInfo
                 {
-                    FileName = "python",
-                    Arguments = $"\"{keycutterPath}\" encode {groupId} {serial} {security}",
+                    FileName = keycutterPath,
+                    Arguments = $"encode {groupId} {serial} {security}",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
-                    WorkingDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)
+                    WorkingDirectory = Path.GetDirectoryName(keycutterPath)
                 };
 
                 using (Process process = Process.Start(startInfo))
                 {
                     if (process == null)
                     {
-                        return "[Error: Could not start Python process]";
+                        return "[Error: Could not start keycutter process]";
                     }
 
                     string output = process.StandardOutput.ReadToEnd();
                     string error = process.StandardError.ReadToEnd();
 
-                    process.WaitForExit(5000);
+                    bool exited = process.WaitForExit(10000);
 
-                    if (process.ExitCode != 0 && !string.IsNullOrEmpty(error))
+                    if (!exited)
+                    {
+                        process.Kill();
+                        return "[Error: Keycutter process timeout]";
+                    }
+
+                    if (process.ExitCode != 0)
+                    {
+                        return $"[Error: Exit code {process.ExitCode}]";
+                    }
+
+                    if (!string.IsNullOrEmpty(error))
                     {
                         return $"[Python Error: {error.Trim()}]";
                     }
@@ -193,7 +239,7 @@ namespace PKEYConfigExtractor
 
                     if (string.IsNullOrEmpty(key))
                     {
-                        return "[Error: No output from Python]";
+                        return "[Error: No output from keycutter]";
                     }
 
                     return key;
@@ -201,108 +247,136 @@ namespace PKEYConfigExtractor
             }
             catch (Exception ex)
             {
-                return $"[Error: {ex.Message}]";
+                return $"[Exception: {ex.Message}]";
             }
         }
 
-        private void GenerateButton_Click(object sender, RoutedEventArgs e)
+        private async void GenerateButton_Click(object sender, RoutedEventArgs e)
         {
-            if (EditionComboBox.SelectedItem == null)
-            {
-                MessageBox.Show("Please select an edition first!", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (pkeyConfig == null)
-            {
-                MessageBox.Show("Please load a PKEYConfig file first!", "Error",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (string.IsNullOrEmpty(keycutterPath))
-            {
-                keycutterPath = ExtractEmbeddedResource("keycutter.cpython-314.pyc");
-                if (string.IsNullOrEmpty(keycutterPath))
-                {
-                    return;
-                }
-            }
-
             try
             {
-                var selectedItem = (ComboBoxItem)EditionComboBox.SelectedItem;
-                var config = (PKeyConfig.Configuration)selectedItem.Tag;
-
-                bool useRandom = RandomCheckBox.IsChecked == true;
-
-                int baseSerial;
-                long baseSecurity;
-
-                if (useRandom)
+                if (keycutterPath == null)
                 {
-                    Random rand = new Random();
-                    baseSerial = rand.Next(0, 0x3FFFFFFF);
-                    byte[] securityBytes = new byte[8];
-                    rand.NextBytes(securityBytes);
-                    baseSecurity = BitConverter.ToInt64(securityBytes, 0) & 0x1FFFFFFFFFFFFF;
-                }
-                else
-                {
-                    if (!int.TryParse(SerialTextBox.Text.Replace("0x", "").Replace("[", "").Replace("]", ""),
-                        System.Globalization.NumberStyles.HexNumber, null, out baseSerial))
+                    keycutterPath = ExtractEmbeddedResource("keycutter.exe");
+
+                    if (keycutterPath == null)
                     {
-                        if (!int.TryParse(SerialTextBox.Text, out baseSerial))
+                        MessageBox.Show("Failed to extract keycutter.exe", "Error",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
+
+                var selectedConfigs = new List<PKeyConfig.Configuration>();
+                if (ManualRadioButton.IsChecked == true)
+                {
+                    if (!int.TryParse(GroupIdTextBox.Text, out int groupId))
+                    {
+                        MessageBox.Show("Please enter a valid Group ID!", "Warning",
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                    var manualConfig = new PKeyConfig.Configuration
+                    {
+                        GroupId = groupId,
+                        ConfigId = $"manual_{groupId}",
+                        EditionId = "Manual",
+                        Desc = "Manual Entry",
+                        KeyType = "Manual",
+                        Randomized = false
+                    };
+
+                    selectedConfigs.Add(manualConfig);
+                }
+                else 
+                {
+                    if (EditionListBox.ItemsSource is IEnumerable<EditionItem> items)
+                    {
+                        foreach (var item in items)
                         {
-                            baseSerial = 0;
+                            if (item.IsChecked && item.Config is PKeyConfig.Configuration config)
+                            {
+                                selectedConfigs.Add(config);
+                            }
                         }
                     }
+                }
 
-                    string securityText = SecurityTextBox.Text.Replace("0x", "").Replace("[", "").Replace("]", "");
-                    if (!long.TryParse(securityText, System.Globalization.NumberStyles.HexNumber, null, out baseSecurity))
+                if (selectedConfigs.Count == 0)
+                {
+                    MessageBox.Show("Please select at least one edition!", "Warning",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                bool useRandom = RandomCheckBox.IsChecked == true;
+                int baseSerial = 0;
+                long baseSecurity = 0;
+
+                if (!useRandom)
+                {
+                    if (!int.TryParse(SerialTextBox.Text, out baseSerial))
                     {
-                        if (!long.TryParse(SecurityTextBox.Text, out baseSecurity))
-                        {
-                            baseSecurity = 0;
-                        }
+                        baseSerial = 0;
+                    }
+                    if (!long.TryParse(SecurityTextBox.Text, out baseSecurity))
+                    {
+                        baseSecurity = 0;
                     }
                 }
 
                 int count = int.Parse(CountTextBox.Text);
                 if (count < 1) count = 1;
-                if (count > 100) count = 100;
+                if (count > 500) count = 500;
 
-                KeysListBox.Items.Clear();
+                int totalKeys = selectedConfigs.Count * count;
 
-                for (int i = 0; i < count; i++)
+
+                GenerationProgressBar.Visibility = Visibility.Visible;
+                GenerationProgressBar.Maximum = totalKeys;
+                GenerationProgressBar.Value = 0;
+
+                GenerateButton.IsEnabled = false;
+
+                await Task.Run(() =>
                 {
-                    int currentSerial;
-                    long currentSecurity;
+                    Dispatcher.Invoke(() => KeysListBox.Items.Clear());
 
-                    if (useRandom)
+                    int generatedCount = 0;
+
+                    foreach (var config in selectedConfigs)
                     {
-                        Random rand = new Random(Guid.NewGuid().GetHashCode());
-                        currentSerial = rand.Next(0, 0x3FFFFFFF);
-                        byte[] securityBytes = new byte[8];
-                        rand.NextBytes(securityBytes);
-                        currentSecurity = BitConverter.ToInt64(securityBytes, 0) & 0x1FFFFFFFFFFFFF;
+                        for (int i = 0; i < count; i++)
+                        {
+                            int currentSerial;
+                            long currentSecurity;
+
+                            if (useRandom)
+                            {
+                                Random rand = new Random(Guid.NewGuid().GetHashCode());
+                                currentSerial = rand.Next(0, 0x3FFFFFFF);
+                                byte[] securityBytes = new byte[8];
+                                rand.NextBytes(securityBytes);
+                                currentSecurity = BitConverter.ToInt64(securityBytes, 0) & 0x1FFFFFFFFFFFFF;
+                            }
+                            else
+                            {
+                                currentSerial = baseSerial + i;
+                                currentSecurity = baseSecurity;
+                            }
+                            string key = GenerateKeyWithPython(config.GroupId, currentSerial, currentSecurity);
+                            string displayText = $"{key} - [{config.Desc}] ({config.GroupId}, {currentSerial:X}, {currentSecurity:X})";
+                            Dispatcher.Invoke(() => KeysListBox.Items.Add(displayText));
+                            generatedCount++;
+                            Dispatcher.Invoke(() => GenerationProgressBar.Value = generatedCount);
+                        }
                     }
-                    else
-                    {
-                        currentSerial = baseSerial + i;
-                        currentSecurity = baseSecurity;
-                    }
+                });
 
-                    string key = GenerateKeyWithPython(config.GroupId, currentSerial, currentSecurity);
+                GenerateButton.IsEnabled = true;
+                GenerationProgressBar.Visibility = Visibility.Collapsed;
 
-                    string displayText = $"{key} - [{config.Desc}] ({config.GroupId}, {currentSerial:X}, {currentSecurity:X})";
-                    KeysListBox.Items.Add(displayText);
-
-                    Application.Current.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
-                }
-
-                MessageBox.Show($"Generated {count} key(s) successfully!", "Success",
+                MessageBox.Show($"Generated {totalKeys} key(s) successfully for {selectedConfigs.Count} edition(s)!", "Success",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -312,6 +386,8 @@ namespace PKEYConfigExtractor
             }
             finally
             {
+                GenerateButton.IsEnabled = true;
+                GenerationProgressBar.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -405,16 +481,16 @@ namespace PKEYConfigExtractor
             XElement root = pkeyConfigDoc.Root;
 
             var configurations = root.Descendants().Where(e => e.Name.LocalName == "Configuration");
-            foreach (var config in configurations)
+            foreach (var configElement in configurations)
             {
                 Configs.Add(new Configuration
                 {
-                    ConfigId = config.Elements().FirstOrDefault(e => e.Name.LocalName == "ActConfigId")?.Value,
-                    GroupId = int.Parse(config.Elements().FirstOrDefault(e => e.Name.LocalName == "RefGroupId")?.Value ?? "0"),
-                    EditionId = config.Elements().FirstOrDefault(e => e.Name.LocalName == "EditionId")?.Value,
-                    Desc = config.Elements().FirstOrDefault(e => e.Name.LocalName == "ProductDescription")?.Value,
-                    KeyType = config.Elements().FirstOrDefault(e => e.Name.LocalName == "ProductKeyType")?.Value,
-                    Randomized = config.Elements().FirstOrDefault(e => e.Name.LocalName == "IsRandomized")?.Value == "true"
+                    ConfigId = configElement.Elements().FirstOrDefault(e => e.Name.LocalName == "ActConfigId")?.Value,
+                    GroupId = int.Parse(configElement.Elements().FirstOrDefault(e => e.Name.LocalName == "RefGroupId")?.Value ?? "0"),
+                    EditionId = configElement.Elements().FirstOrDefault(e => e.Name.LocalName == "EditionId")?.Value,
+                    Desc = configElement.Elements().FirstOrDefault(e => e.Name.LocalName == "ProductDescription")?.Value,
+                    KeyType = configElement.Elements().FirstOrDefault(e => e.Name.LocalName == "ProductKeyType")?.Value,
+                    Randomized = configElement.Elements().FirstOrDefault(e => e.Name.LocalName == "IsRandomized")?.Value == "true"
                 });
             }
 
@@ -459,5 +535,39 @@ namespace PKEYConfigExtractor
         {
             return PubKeys.FirstOrDefault(x => x.GroupId == group);
         }
+    }
+}
+
+public class EditionItem : INotifyPropertyChanged
+{
+    private bool _isChecked;
+    public string Display { get; set; }
+    public PKeyConfig.Configuration Config { get; set; }
+
+    public bool IsChecked
+    {
+        get { return _isChecked; }
+        set
+        {
+            if (_isChecked != value)
+            {
+                _isChecked = value;
+                OnPropertyChanged(nameof(IsChecked));
+            }
+        }
+    }
+
+    public EditionItem(string display, PKeyConfig.Configuration config)
+    {
+        Display = display;
+        Config = config;
+        _isChecked = false;
+    }
+
+    public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+    protected void OnPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
     }
 }
