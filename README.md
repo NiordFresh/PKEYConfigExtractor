@@ -29,6 +29,15 @@ This project is licensed under the GPL-3.0 License. See the LICENSE file for mor
 ```
 
 ---
+# 😐 Creditz:
+
+```
+[awuctl - keycutter.py](https://github.com/awuctl/licensing-stuff/blob/main/keycutter.py)
+[awuctl - Technical Details](https://github.com/awuctl/licensing-stuff/blob/main/docs/details.md)
+[Bob65536 - MDL (web.archive.org)](https://web.archive.org/web/20130304235630/http://forums.mydigitallife.info/threads/37590-Windows-8-Product-Key-Decoding)
+```
+
+---
 # ⚠️ Disclaimer
 
 > This software, PKEYConfigExtractor, is provided strictly for educational, academic, and research purposes. The author explicitly DISCLAIMS any responsibility or liability for misuse, illegal activity, copyright infringement, software piracy, or violation of Microsoft’s Software License Terms.
