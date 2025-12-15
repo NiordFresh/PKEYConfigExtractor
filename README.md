@@ -15,7 +15,7 @@ PKEYConfigExtractor is a WPF-based utility designed to generate Windows product 
 - Minimal System Footprint: Small executable size, low memory usage, and quick startup time—ideal for use on older or resource-constrained systems.
   
 ---
-# ⚙️ Requirements:
+# ⚙️ Requirements
 
 ```
 - .NET Framework 4.5.2 or higher  
@@ -29,7 +29,7 @@ This project is licensed under the GPL-3.0 License. See the LICENSE file for mor
 ```
 
 ---
-# 😐 Creditz:
+# 😐 Creditz
 
 
 > [awuctl - keycutter.py](https://github.com/awuctl/licensing-stuff/blob/main/keycutter.py)
