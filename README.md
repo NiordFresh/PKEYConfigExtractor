@@ -6,19 +6,14 @@ PKEYConfigExtractor is a WPF-based utility designed to generate Windows product 
 ---
 # 🎯 Features
 
-- User-Friendly GUI: A clean, responsive WPF interface that makes key generation straightforward—even for non-technical users. All controls are intuitively laid out, with clear visual feedback and real-time status updates.
+- User-Friendly GUI: A clean, responsive WPF interface that makes key generation straightforward—even for non-technical users. All controls are intuitively laid out, with clear visual feedback.
 
 - Zero External Dependencies: The application relies solely on the built-in WPF framework (.NET Framework 4.5.2+), with no third-party libraries or runtime requirements. This ensures maximum compatibility and portability across Windows systems.
 
 - Blazing-Fast Key Generation: The core cryptographic engine is implemented in Go (Golang) and embedded directly into the application, enabling rapid key computation without the overhead of interpreted scripts or external processes.
 
-- Self-Contained Execution: The Go-based generator is compiled into a native binary and bundled as an internal resource, eliminating the need for Python, .NET Core, or any other interpreters.
-
-- Offline & Secure: No internet connection is required.
-
 - Minimal System Footprint: Small executable size, low memory usage, and quick startup time—ideal for use on older or resource-constrained systems.
-
-
+  
 ---
 # ⚙️ Requirements:
 
