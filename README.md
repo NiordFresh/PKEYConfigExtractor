@@ -33,7 +33,9 @@ This project is licensed under the GPL-3.0 License. See the LICENSE file for mor
 
 
 > [awuctl - keycutter.py](https://github.com/awuctl/licensing-stuff/blob/main/keycutter.py)
+> |
 > [awuctl - Technical Details](https://github.com/awuctl/licensing-stuff/blob/main/docs/details.md)
+> |
 > [Bob65536 - MDL (web.archive.org)](https://web.archive.org/web/20130304235630/http://forums.mydigitallife.info/threads/37590-Windows-8-Product-Key-Decoding)
 
 ---
