@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -29,6 +30,7 @@ namespace PKEYConfigExtractor
             GenerateButton.Click += GenerateButton_Click;
             ManualRadioButton.Checked += ManualRadioButton_Checked;
             ComboRadioButton.Checked += ComboRadioButton_Checked;
+            KeycutterComboBox.SelectionChanged += KeycutterComboBox_SelectionChanged;
 
             MenuItem copySelected = new MenuItem() { Header = "Copy Selected" };
             copySelected.Click += CopySelected_Click;
@@ -45,6 +47,15 @@ namespace PKEYConfigExtractor
             MainComboBox.IsEnabled = true;
             GroupIdTextBox.IsEnabled = false;
             ComboRadioButton.IsChecked = true;
+            
+            // Ustaw domyślnie keycutter-c++clang.exe
+            KeycutterComboBox.SelectedIndex = 1;
+        }
+
+        private void KeycutterComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Resetuj ścieżkę keycuttera, aby wymusić ponowne załadowanie
+            keycutterPath = null;
         }
 
         private string ExtractEmbeddedResource(string resourceName)
@@ -184,6 +195,26 @@ namespace PKEYConfigExtractor
             GroupIdTextBox.IsEnabled = false;
         }
 
+        private string GetSelectedKeycutterName()
+        {
+            if (KeycutterComboBox.SelectedItem is ComboBoxItem item)
+            {
+                string displayText = item.Content.ToString();
+                
+                // Mapuj wyświetlane etykiety na nazwy plików
+                switch (displayText)
+                {
+                    case "GOLang (Legacy)":
+                        return "keycutter-golang.exe";
+                    case "C++ Clang":
+                        return "keycutter-c++clang.exe";
+                    default:
+                        return "keycutter-c++clang.exe";
+                }
+            }
+            return "keycutter-c++clang.exe";
+        }
+
         private string GenerateKeyWithPython(int groupId, int serial, long security)
         {
             if (string.IsNullOrEmpty(keycutterPath) || !File.Exists(keycutterPath))
@@ -257,11 +288,12 @@ namespace PKEYConfigExtractor
             {
                 if (keycutterPath == null)
                 {
-                    keycutterPath = ExtractEmbeddedResource("keycutter.exe");
+                    string selectedKeycutter = GetSelectedKeycutterName();
+                    keycutterPath = ExtractEmbeddedResource(selectedKeycutter);
 
                     if (keycutterPath == null)
                     {
-                        MessageBox.Show("Failed to extract keycutter.exe", "Error",
+                        MessageBox.Show($"Failed to extract {selectedKeycutter}", "Error",
                             MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
@@ -327,7 +359,7 @@ namespace PKEYConfigExtractor
 
                 int count = int.Parse(CountTextBox.Text);
                 if (count < 1) count = 1;
-                if (count > 500) count = 500;
+                if (count > 2500) count = 2500;
 
                 int totalKeys = selectedConfigs.Count * count;
 

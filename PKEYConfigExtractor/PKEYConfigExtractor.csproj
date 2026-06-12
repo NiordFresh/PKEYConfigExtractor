@@ -106,7 +106,11 @@
     <Resource Include="pkey.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="assets\keycutter.exe" />
+    <EmbeddedResource Include="assets\keycutter-c++clang.exe" />
+    <EmbeddedResource Include="assets\keycutter-golang.exe" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="img.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

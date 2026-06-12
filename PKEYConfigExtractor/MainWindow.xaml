@@ -5,18 +5,26 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PKEYConfigExtractor"
         mc:Ignorable="d"
-        Title="PKEYConfigExtractor v1.1" Height="550" Width="650" MinHeight="550" MinWidth="650">
+        Title="PKEYConfigExtractor v1.2.0.0" Height="700" Width="650" MinHeight="550" MinWidth="650">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="27*"/>
             <ColumnDefinition Width="103*"/>
         </Grid.ColumnDefinitions>
-        <TextBox x:Name="FilePathTextBox" Margin="10,10,10,0" TextWrapping="Wrap" Text="Insert your PKEYConfig file..." VerticalAlignment="Top" Height="27" Cursor="Hand" IsReadOnly="True" Grid.ColumnSpan="2"/>
-        <StackPanel Orientation="Horizontal" Margin="10,69,10,0" Height="30" VerticalAlignment="Top" Grid.ColumnSpan="3">
+        <Image HorizontalAlignment="Left" Height="212" Margin="0,-18,0,0" VerticalAlignment="Top" Width="650" Grid.ColumnSpan="2" Source="/img.jpg" Stretch="Fill"/>
+        <TextBox x:Name="FilePathTextBox" Margin="10,118,10,0" TextWrapping="Wrap" Text="Insert your PKEYConfig file..." VerticalAlignment="Top" Height="27" Cursor="Hand" IsReadOnly="True" Grid.ColumnSpan="2"/>
+        <StackPanel Orientation="Horizontal" Margin="10,177,10,0" Height="30" VerticalAlignment="Top" Grid.ColumnSpan="2">
             <RadioButton x:Name="ComboRadioButton" Content="Select from loaded editions" VerticalAlignment="Center" Margin="0,0,30,0"/>
             <RadioButton x:Name="ManualRadioButton" Content="Enter Group ID manually" VerticalAlignment="Center"/>
         </StackPanel>
-        <ComboBox x:Name="MainComboBox" Margin="10,42,10,0" VerticalAlignment="Top" Height="25" Grid.ColumnSpan="2">
+        <StackPanel Orientation="Horizontal" Margin="10,212,10,0" Height="30" VerticalAlignment="Top" Grid.ColumnSpan="2">
+            <TextBlock Text="Keycutter:" VerticalAlignment="Center" Margin="0,0,10,0" FontSize="12"/>
+            <ComboBox x:Name="KeycutterComboBox" Width="250" VerticalAlignment="Center">
+                <ComboBoxItem Content="GOLang (Legacy)" IsSelected="True"/>
+                <ComboBoxItem Content="C++ Clang"/>
+            </ComboBox>
+        </StackPanel>
+        <ComboBox x:Name="MainComboBox" Margin="10,150,10,0" VerticalAlignment="Top" Height="25" Grid.ColumnSpan="2">
             <ListBox x:Name="EditionListBox" 
              MaxHeight="400"
              MinWidth="{Binding ActualWidth, ElementName=MainComboBox}"
@@ -35,19 +43,19 @@
                 </ListBox.ItemTemplate>
             </ListBox>
         </ComboBox>
-        <TextBox x:Name="GroupIdTextBox" Margin="0,73,10,0" TextWrapping="Wrap" Text="[GROUP ID]" VerticalAlignment="Top" Grid.Column="1" HorizontalAlignment="Right" Width="168"/>
-        <TextBox x:Name="SerialTextBox" HorizontalAlignment="Left" Margin="10,101,0,0" TextWrapping="Wrap" Text="[SERIAL]" VerticalAlignment="Top" Width="132" Grid.ColumnSpan="2"/>
-        <TextBox x:Name="SecurityTextBox" HorizontalAlignment="Left" Margin="10,125,0,0" TextWrapping="Wrap" Text="[SECURITY]" VerticalAlignment="Top" Width="132" Grid.ColumnSpan="2"/>
-        <TextBlock Margin="10,148,0,0" TextWrapping="Wrap" FontSize="9" Foreground="Gray" HorizontalAlignment="Left" Width="202" Grid.ColumnSpan="2" Height="24" VerticalAlignment="Top">
+        <TextBox x:Name="GroupIdTextBox" Margin="0,183,10,0" TextWrapping="Wrap" Text="[GROUP ID]" VerticalAlignment="Top" Grid.Column="1" HorizontalAlignment="Right" Width="168"/>
+        <TextBox x:Name="SerialTextBox" HorizontalAlignment="Left" Margin="10,269,0,0" TextWrapping="Wrap" Text="[SERIAL]" VerticalAlignment="Top" Width="132" Grid.ColumnSpan="2"/>
+        <TextBox x:Name="SecurityTextBox" HorizontalAlignment="Left" Margin="10,293,0,0" TextWrapping="Wrap" Text="[SECURITY]" VerticalAlignment="Top" Width="132" Grid.ColumnSpan="2"/>
+        <TextBlock Margin="10,316,0,0" TextWrapping="Wrap" FontSize="9" Foreground="Gray" HorizontalAlignment="Left" Width="202" Grid.ColumnSpan="2" Height="24" VerticalAlignment="Top">
             <Run Text="SERIAL: 0x0 - 0x3FFFFFFF"/>
             <LineBreak/>
             <Run Text="SECURITY: 0x0 - 0x1FFFFFFFFFFFFF"/>
         </TextBlock>
-        <CheckBox x:Name="RandomCheckBox" Content="Use random valid [SERIAL] and [SECURITY]..." HorizontalAlignment="Left" Margin="10,175,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
-        <TextBlock HorizontalAlignment="Right" Margin="0,133,74,0" TextWrapping="Wrap" Text="How many to generate? (max. 500):" VerticalAlignment="Top" Grid.Column="1"/>
-        <TextBox x:Name="CountTextBox" Margin="0,130,10,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" HorizontalAlignment="Right" Width="59" Grid.Column="1"/>
-        <Button x:Name="GenerateButton" Content="GENERATE!" Margin="0,157,10,0" VerticalAlignment="Top" Height="34" HorizontalAlignment="Right" Width="251" Grid.Column="1"/>
-        <ListBox x:Name="KeysListBox" Margin="10,195,10,22" Grid.ColumnSpan="2">
+        <CheckBox x:Name="RandomCheckBox" Content="Use random valid [SERIAL] and [SECURITY]..." HorizontalAlignment="Left" Margin="10,343,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+        <TextBlock HorizontalAlignment="Right" Margin="0,301,74,0" TextWrapping="Wrap" Text="How many to generate? (max. 2500):" VerticalAlignment="Top" Grid.Column="1"/>
+        <TextBox x:Name="CountTextBox" Margin="0,298,10,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" HorizontalAlignment="Right" Width="59" Grid.Column="1"/>
+        <Button x:Name="GenerateButton" Content="GENERATE!" Margin="0,323,10,0" VerticalAlignment="Top" Height="34" Grid.Column="1" HorizontalAlignment="Right" Width="251"/>
+        <ListBox x:Name="KeysListBox" Margin="10,364,10,22" Grid.ColumnSpan="2">
             <ListBox.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Copy Selected" Click="CopySelected_Click"/>
