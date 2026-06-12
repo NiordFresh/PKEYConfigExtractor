@@ -31,7 +31,7 @@ PKEYConfigExtractor is a WPF-based utility designed to generate Windows product 
 
 
 ---
-# 😐 Creditz
+# Creditz
 
 
 > [awuctl - keycutter.py](https://github.com/awuctl/licensing-stuff/blob/main/keycutter.py)
@@ -41,7 +41,7 @@ PKEYConfigExtractor is a WPF-based utility designed to generate Windows product 
 > [Bob65536 - MDL (web.archive.org)](https://web.archive.org/web/20130304235630/http://forums.mydigitallife.info/threads/37590-Windows-8-Product-Key-Decoding)
 
 ---
-# ⚠️ Disclaimer
+# Disclaimer
 
 > This software, PKEYConfigExtractor, is provided strictly for educational, academic, and research purposes. The author explicitly DISCLAIMS any responsibility or liability for misuse, illegal activity, copyright infringement, software piracy, or violation of Microsoft’s Software License Terms.
 
