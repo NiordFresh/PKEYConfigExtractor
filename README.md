@@ -14,7 +14,7 @@ PKEYConfigExtractor is a WPF-based utility designed to generate Windows product 
 
 - Blazing-Fast Key Generation: The core cryptographic engine is implemented in C++ and GOLang and embedded directly into the application, enabling rapid key computation without the overhead of interpreted scripts or external processes.
 
-- Minimal System Footprint: Small executable size, low memory usage, and quick startup time—ideal for use on older or resource-constrained systems.
+- Minimal System Footprint: Small executable size, low memory usage, and quick startup time, ideal for use on older or resource-constrained systems.
   
 ---
 # Requirements
