@@ -6,7 +6,7 @@ PKEYConfigExtractor is a WPF-based utility designed to generate Windows product 
 ---
 # Features
 
-- User-Friendly GUI: A clean, responsive WPF interface that makes key generation straightforward—even for non-technical users. All controls are intuitively laid out, with clear visual feedback.
+- User-Friendly GUI: A clean, responsive WPF interface that makes key generation straightforward, even for non-technical users. All controls are intuitively laid out, with clear visual feedback.
 
 - Zero External Dependencies: The application relies solely on the built-in WPF framework (.NET Framework 4.5.2+), with no third-party libraries or runtime requirements. This ensures maximum compatibility and portability across Windows systems.
  
